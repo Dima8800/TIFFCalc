@@ -1,0 +1,13 @@
+.button {
+    -fx-background-color: #4CAF50; /* Зеленый фон */
+    -fx-text-fill: white; /* Белый текст */
+    -fx-font-size: 16px; /* Размер шрифта */
+    -fx-padding: 10px 20px; /* Отступы */
+    -fx-border-radius: 5px; /* Закругленные углы */
+    -fx-background-radius: 5px; /* Закругленный фон */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 5, 0, 0, 1); /* Тень */
+}
+
+.button:hover {
+    -fx-background-color: #45a049; /* Темнее при наведении */
+}
