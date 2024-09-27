@@ -1,5 +1,8 @@
 package calc.square.imagecalc.models;
 
+
+
+
 public class Photo {
     private Long id;
 
@@ -7,6 +10,16 @@ public class Photo {
 
     private Double Perimetr;
     private Double Area;
+
+    @Override
+    public String toString() {
+        return "Photo{" +
+                "id=" + id +
+                ", nameFile='" + nameFile + '\'' +
+                ", Perimetr=" + Perimetr +
+                ", Area=" + Area +
+                '}';
+    }
 
     public Long getId() {
         return id;

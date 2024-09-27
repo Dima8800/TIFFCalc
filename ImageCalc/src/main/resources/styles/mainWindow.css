@@ -1,5 +1,5 @@
 .button {
-    -fx-background-color: #ffc0cb; /* Зеленый фон ffc0cb   4CAF50*/
+    -fx-background-color: #4CAF50; /* Зеленый фон ffc0cb   4CAF50*/
     -fx-text-fill: white; /* Белый текст */
     -fx-font-size: 16px; /* Размер шрифта */
     -fx-padding: 10px 20px; /* Отступы */
@@ -10,4 +10,13 @@
 
 .button:hover {
     -fx-background-color: #45a049; /* Темнее при наведении */
+}
+
+.red-button {
+    -fx-background-color: red;
+    -fx-text-fill: white;
+    -fx-alignment: center-right;
+}
+.red-button:hover {
+    -fx-background-color: #8b0000;
 }

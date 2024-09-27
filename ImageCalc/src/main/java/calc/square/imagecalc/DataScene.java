@@ -62,6 +62,8 @@ public class DataScene {
     }
 
     private void updateResults() {
+        results.setFilles(getInfoAboutPhotos(results.getId()));
+
         resultLayout.getChildren().clear();
 
         resultLayout.getChildren().addAll(
@@ -73,13 +75,12 @@ public class DataScene {
         );
 
         for (Photo photo : photoList) {
+            System.out.println(photo.toString());
             resultLayout.getChildren().add(new Label("Файл: " + photo.getNameFile() +
                     ", Периметр: " + photo.getPerimetr() +
                     ", Площадь: " + photo.getArea()));
         }
     }
-
-    // TODO: Сделать сохранение в измененных данных в Базу Данных
 
     public void openFilles() {
         FileChooser fileChooser = new FileChooser();
@@ -117,15 +118,15 @@ public class DataScene {
                     results.setFilles(photoList);
                     results.setTotalPerimetr(photo.getPerimetr() + results.getTotalPerimetr());
                     results.setTotalArea(photo.getArea() + results.getTotalArea());
+                    results.setTotalFiles(photoList.size());
 
+                    UpdateDataBase(results);
                     updateResults();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Ошибка при загрузке изображения.");
             }
-
-            updateResults();
         } else {
             System.out.println("Файл не выбран.");
         }
@@ -143,6 +144,12 @@ public class DataScene {
                 throw new IllegalArgumentException("Нет доступных читателей для данного файла.");
             }
         }
+    }
+
+    private void UpdateDataBase(Result result){
+        RequestController requestController = new RequestController();
+
+        requestController.updateResult(result);
     }
 
     private void returnToMainScreen() {

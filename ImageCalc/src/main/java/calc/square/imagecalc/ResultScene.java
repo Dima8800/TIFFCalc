@@ -6,13 +6,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,6 +26,9 @@ import java.util.List;
 public class ResultScene {
     private Stage stage;
     private CalcApplication calcApplication;
+
+    private int currentPage = 0;
+    private static final int RESULTS_PER_PAGE = 13;
 
     public ResultScene(Stage stage, CalcApplication calcApplication) {
         this.stage = stage;
@@ -68,14 +74,46 @@ public class ResultScene {
             }
         });
 
-        Button backButton = new Button("Назад");
-        backButton.setOnAction(event -> {
-            returnToMainScreen();
-        });
+        for (TableColumn<Result, ?> column : tableView.getColumns()) {
+            column.setGraphic(new Label(column.getText())); // Установка графики для заголовка
+            column.getGraphic().setOnMouseClicked(event -> {
+                System.out.println("Нажатие на столбец: " + column.getText());
+            });
+        }
 
-        VBox layout = new VBox(tableView, backButton);
+        Button nextPageButton = new Button("Следующая страница");
+        nextPageButton.setOnAction(event -> goToNextPage(tableView));
+
+        Button prevPageButton = new Button("Предыдущая страница");
+        prevPageButton.setOnAction(event -> goToPrevPage(tableView));
+
+        Button backButton = new Button("Назад");
+        backButton.getStyleClass().add("red-button");
+        backButton.setOnAction(event -> returnToMainScreen());
+
+        // Используем HBox для размещения кнопок в одном ряду
+        HBox buttonLayout = new HBox(10); // 10 - это отступ между кнопками
+        buttonLayout.getChildren().addAll(prevPageButton, nextPageButton, backButton);
+
+        VBox layout = new VBox(tableView, buttonLayout);
+
         Scene resultScene = new Scene(layout, 800, 600);
+
+        URL cssUrl = getClass().getResource("/styles/mainWindow.css");
+        if (cssUrl != null) {
+            layout.getStylesheets().add(cssUrl.toExternalForm());
+        } else {
+            System.err.println("CSS файл не найден!");
+        }
         stage.setScene(resultScene);
+    }
+
+    private void goToNextPage(TableView<Result> tableView) {
+        currentPage ++;
+    }
+
+    private void goToPrevPage(TableView<Result> tableView) {
+        currentPage --;
     }
 
     // Метод для отображения фоток расчета

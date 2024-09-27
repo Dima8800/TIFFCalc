@@ -61,8 +61,8 @@ public class Result {
         return filles;
     }
 
-    public void setFilles(List<Photo> filles) {
-        this.filles = filles;
+    public void setFilles(List<Photo> fille) {
+        this.filles = fille;
     }
 
     public LocalDateTime getUpdatedAt() {

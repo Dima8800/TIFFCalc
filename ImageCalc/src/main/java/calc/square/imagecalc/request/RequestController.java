@@ -136,7 +136,12 @@ public class RequestController {
                 result.setTotalArea(resultSet.getDouble("total_area"));
                 result.setTotalFiles(resultSet.getInt("total_files"));
                 result.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
-                result.setUpdatedAt(resultSet.getTimestamp("updated_at").toLocalDateTime());
+                Timestamp updatedAtTimestamp = resultSet.getTimestamp("updated_at");
+                if (updatedAtTimestamp != null) {
+                    result.setUpdatedAt(updatedAtTimestamp.toLocalDateTime());
+                } else {
+                    result.setUpdatedAt(null);
+                }
 
                 results.add(result);
             }
@@ -164,6 +169,7 @@ public class RequestController {
                 photo.setNameFile(resultSet.getString("name_file"));
                 photo.setPerimetr(resultSet.getDouble("perimetr"));
                 photo.setArea(resultSet.getDouble("area"));
+                photo.setId(resultSet.getLong("id"));
 
                 photos.add(photo);
             }
@@ -173,5 +179,85 @@ public class RequestController {
         }
 
         return photos;
+    }
+
+
+    public void updateResult(Result result) {
+        result.toString();
+        String updateResultSQL = "UPDATE Result SET number = ?, total_perimetr = ?, total_area = ?, total_files = ?, updated_at = ? WHERE id = ?;";
+
+        try (Connection connection = DriverManager.getConnection(url, user, password);
+             PreparedStatement preparedStatement = connection.prepareStatement(updateResultSQL)) {
+
+            preparedStatement.setString(1, result.getNumber());
+            preparedStatement.setDouble(2, result.getTotalPerimetr());
+            preparedStatement.setDouble(3, result.getTotalArea());
+            preparedStatement.setInt(4, result.getTotalFiles());
+            preparedStatement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now())); // Обновляем время
+            preparedStatement.setLong(6, result.getId()); // ID записи, которую нужно обновить
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                addNewPhotos(result.getFilles(), result.getId());
+            } else {
+                System.err.println("Не удалось обновить результат с ID: " + result.getId());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updatePhotos(List<Photo> photos, long idResult) {
+        String updatePhotoSQL = "UPDATE Photo SET name_file = ?, perimetr = ?, area = ? WHERE result_id = ? AND id = ?;";
+
+        try (Connection connection = DriverManager.getConnection(url, user, password);
+             PreparedStatement preparedStatement = connection.prepareStatement(updatePhotoSQL)) {
+
+            for (Photo photo : photos) {
+                if (photo.getId() != null) {
+                    preparedStatement.setString(1, photo.getNameFile());
+                    preparedStatement.setDouble(2, photo.getPerimetr());
+                    preparedStatement.setDouble(3, photo.getArea());
+                    preparedStatement.setLong(4, idResult);
+                    preparedStatement.setLong(5, photo.getId());
+
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected > 0) {
+                        System.out.println("Фотография успешно обновлена: " + photo.getNameFile());
+                    } else {
+                        System.err.println("Не удалось обновить фотографию: " + photo.getNameFile());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addNewPhotos(List<Photo> photos, long idResult) {
+        String insertPhotoSQL = "INSERT INTO Photo (name_file, perimetr, area, result_id) VALUES (?, ?, ?, ?);";
+
+        try (Connection connection = DriverManager.getConnection(url, user, password);
+             PreparedStatement preparedStatement = connection.prepareStatement(insertPhotoSQL)) {
+
+            for (Photo photo : photos) {
+                if (photo.getId() == null) {
+                    System.out.println("ss");// Проверяем, что id отсутствует
+                    preparedStatement.setString(1, photo.getNameFile());
+                    preparedStatement.setDouble(2, photo.getPerimetr());
+                    preparedStatement.setDouble(3, photo.getArea());
+                    preparedStatement.setLong(4, idResult);
+
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected > 0) {
+                        System.out.println("Новая фотография успешно добавлена: " + photo.getNameFile());
+                    } else {
+                        System.err.println("Не удалось добавить новую фотографию: " + photo.getNameFile());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
