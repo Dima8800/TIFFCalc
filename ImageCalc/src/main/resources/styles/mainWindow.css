@@ -1,5 +1,5 @@
 .button {
-    -fx-background-color: #4CAF50; /* Зеленый фон */
+    -fx-background-color: #ffc0cb; /* Зеленый фон ffc0cb   4CAF50*/
     -fx-text-fill: white; /* Белый текст */
     -fx-font-size: 16px; /* Размер шрифта */
     -fx-padding: 10px 20px; /* Отступы */

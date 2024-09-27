@@ -34,7 +34,7 @@ public class CalcApplication extends Application {
         calculateButton.setOnAction(e -> calculate(primaryStage));
 
         Button viewCalculationsButton = new Button("Посмотреть расчеты");
-        viewCalculationsButton.setOnAction(e -> viewCalculations());
+        viewCalculationsButton.setOnAction(e -> viewCalculations(primaryStage));
 
         VBox layout = new VBox(10);
         layout.getChildren().addAll(folderLabel, selectFolderButton, calculateButton, viewCalculationsButton);
@@ -78,8 +78,9 @@ public class CalcApplication extends Application {
         calculationScene.showResults();
     }
 
-    private void viewCalculations() {
-        System.out.println("Здесь будут ваши расчеты.");
+    private void viewCalculations(Stage primaryStage) {
+        ResultScene resultScene = new ResultScene(primaryStage, this);
+        resultScene.showResults();
     }
 
     public static void main(String[] args) {
