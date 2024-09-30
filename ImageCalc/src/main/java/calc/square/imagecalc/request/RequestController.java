@@ -119,31 +119,66 @@ public class RequestController {
         }
     }
 
-    public List<Result> getAllResults() {
+    public List<Result> getAllResults(String search, int page, int pageSize) {
         List<Result> results = new ArrayList<>();
-        String selectSQL = "SELECT * FROM Result;";
+        String selectSQL;
+
+        // Если search пустой, выбираем все результаты
+        if (search == null || search.trim().isEmpty()) {
+            selectSQL = "SELECT * FROM Result LIMIT ? OFFSET ?;";
+        } else {
+            selectSQL = "SELECT * FROM Result WHERE LOWER(number) LIKE LOWER(?) " +
+                    "OR CAST(total_perimetr AS TEXT) LIKE ? " + // Поиск по total_perimetr
+                    "OR CAST(total_area AS TEXT) LIKE ? " + // Поиск по total_area
+                    "OR total_files = ? " + // Поиск по total_files
+                    "LIMIT ? OFFSET ?;";
+        }
 
         try (Connection connection = DriverManager.getConnection(url, user, password);
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(selectSQL)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(selectSQL)) {
 
-            while (resultSet.next()) {
-                Result result = new Result();
+            // Устанавливаем параметры для поиска и пагинации
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.toLowerCase() + "%"; // Подготовка шаблона поиска
 
-                result.setId(resultSet.getLong("id"));
-                result.setNumber(resultSet.getString("number"));
-                result.setTotalPerimetr(resultSet.getDouble("total_perimetr"));
-                result.setTotalArea(resultSet.getDouble("total_area"));
-                result.setTotalFiles(resultSet.getInt("total_files"));
-                result.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
-                Timestamp updatedAtTimestamp = resultSet.getTimestamp("updated_at");
-                if (updatedAtTimestamp != null) {
-                    result.setUpdatedAt(updatedAtTimestamp.toLocalDateTime());
-                } else {
-                    result.setUpdatedAt(null);
+                preparedStatement.setString(1, searchPattern); // Поиск по number
+                preparedStatement.setString(2, searchPattern); // Поиск по total_perimetr
+                preparedStatement.setString(3, searchPattern); // Поиск по total_area
+
+                // Попробуем установить значение для поиска по total_files
+                try {
+                    int totalFilesSearch = Integer.parseInt(search.trim());
+                    preparedStatement.setInt(4, totalFilesSearch); // Поиск по total_files
+                } catch (NumberFormatException e) {
+                    preparedStatement.setInt(4, -1); // Устанавливаем недопустимое значение, чтобы не находить ничего
                 }
 
-                results.add(result);
+                preparedStatement.setInt(5, pageSize); // Количество элементов на странице
+                preparedStatement.setInt(6, page * pageSize); // Смещение для текущей страницы
+            } else {
+                preparedStatement.setInt(1, pageSize); // Количество элементов на странице
+                preparedStatement.setInt(2, page * pageSize); // Смещение для текущей страницы
+            }
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    Result result = new Result();
+
+                    result.setId(resultSet.getLong("id"));
+                    result.setNumber(resultSet.getString("number"));
+                    result.setTotalPerimetr(resultSet.getDouble("total_perimetr"));
+                    result.setTotalArea(resultSet.getDouble("total_area"));
+                    result.setTotalFiles(resultSet.getInt("total_files")); // Заполнение поля total_files
+                    result.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
+                    Timestamp updatedAtTimestamp = resultSet.getTimestamp("updated_at");
+                    if (updatedAtTimestamp != null) {
+                        result.setUpdatedAt(updatedAtTimestamp.toLocalDateTime());
+                    } else {
+                        result.setUpdatedAt(null);
+                    }
+
+                    results.add(result);
+                }
             }
 
         } catch (SQLException e) {

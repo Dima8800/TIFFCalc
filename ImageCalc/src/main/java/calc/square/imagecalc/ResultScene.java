@@ -2,13 +2,11 @@ package calc.square.imagecalc;
 
 import calc.square.imagecalc.models.Result;
 import calc.square.imagecalc.request.RequestController;
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -18,6 +16,8 @@ import javafx.scene.input.MouseEvent;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
+import javafx.util.Duration;
+import org.w3c.dom.css.CSSStyleRule;
 
 // TODO: Сделать сортировку постранично
 
@@ -30,6 +30,8 @@ public class ResultScene {
     private int currentPage = 0;
     private static final int RESULTS_PER_PAGE = 13;
 
+    private String Search;
+
     public ResultScene(Stage stage, CalcApplication calcApplication) {
         this.stage = stage;
         this.calcApplication = calcApplication;
@@ -37,6 +39,20 @@ public class ResultScene {
 
     public void showResults() {
         TableView<Result> tableView = new TableView<>();
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Введите текст для поиска...");
+
+        PauseTransition pause = new PauseTransition(Duration.seconds(2));
+        pause.setOnFinished(event -> {
+            Search = searchField.getText();
+            search(tableView);
+        });
+        pause.play();
+
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            pause.playFromStart();
+        });
 
         TableColumn<Result, Long> numberCol = new TableColumn<>("Номер");
         numberCol.setCellValueFactory(new PropertyValueFactory<>("number"));
@@ -59,10 +75,8 @@ public class ResultScene {
         tableView.getColumns().addAll(numberCol, perimeterCol, areaCol, filesCol, createdCol, updateCol);
 
         ObservableList<Result> data = FXCollections.observableArrayList();
-
         List<Result> results = getListWithResults(); // Исправлено имя метода
         data.setAll(results);
-
         tableView.setItems(data);
 
         tableView.setOnMouseClicked((MouseEvent event) -> {
@@ -95,7 +109,7 @@ public class ResultScene {
         HBox buttonLayout = new HBox(10); // 10 - это отступ между кнопками
         buttonLayout.getChildren().addAll(prevPageButton, nextPageButton, backButton);
 
-        VBox layout = new VBox(tableView, buttonLayout);
+        VBox layout = new VBox(searchField, tableView, buttonLayout); // Добавляем поле поиска в layout
 
         Scene resultScene = new Scene(layout, 800, 600);
 
@@ -105,15 +119,31 @@ public class ResultScene {
         } else {
             System.err.println("CSS файл не найден!");
         }
+
         stage.setScene(resultScene);
     }
 
+    public void search(TableView<Result> tableView){
+        updateTableData(tableView);
+    }
+
+    private void updateTableData(TableView<Result> tableView) {
+        ObservableList<Result> data = FXCollections.observableArrayList();
+        List<Result> results = getListWithResults();
+        data.setAll(results);
+        tableView.setItems(data);
+    }
+
     private void goToNextPage(TableView<Result> tableView) {
-        currentPage ++;
+        currentPage++;
+        updateTableData(tableView);
     }
 
     private void goToPrevPage(TableView<Result> tableView) {
-        currentPage --;
+        if (currentPage > 0) {
+            currentPage--;
+            updateTableData(tableView);
+        }
     }
 
     // Метод для отображения фоток расчета
@@ -125,7 +155,8 @@ public class ResultScene {
     private List<Result> getListWithResults(){
         RequestController requestController = new RequestController();
 
-        return requestController.getAllResults();
+        System.out.println(Search);
+        return requestController.getAllResults(Search, currentPage, RESULTS_PER_PAGE);
     }
 
     private void returnToMainScreen() {
