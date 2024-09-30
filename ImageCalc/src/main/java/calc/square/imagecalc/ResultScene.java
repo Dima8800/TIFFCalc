@@ -17,7 +17,6 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import javafx.util.Duration;
-import org.w3c.dom.css.CSSStyleRule;
 
 // TODO: Сделать сортировку постранично
 
@@ -75,7 +74,7 @@ public class ResultScene {
         tableView.getColumns().addAll(numberCol, perimeterCol, areaCol, filesCol, createdCol, updateCol);
 
         ObservableList<Result> data = FXCollections.observableArrayList();
-        List<Result> results = getListWithResults(); // Исправлено имя метода
+        List<Result> results = getListWithResults();
         data.setAll(results);
         tableView.setItems(data);
 
@@ -89,7 +88,7 @@ public class ResultScene {
         });
 
         for (TableColumn<Result, ?> column : tableView.getColumns()) {
-            column.setGraphic(new Label(column.getText())); // Установка графики для заголовка
+            column.setGraphic(new Label(column.getText()));
             column.getGraphic().setOnMouseClicked(event -> {
                 System.out.println("Нажатие на столбец: " + column.getText());
             });
@@ -105,11 +104,10 @@ public class ResultScene {
         backButton.getStyleClass().add("red-button");
         backButton.setOnAction(event -> returnToMainScreen());
 
-        // Используем HBox для размещения кнопок в одном ряду
-        HBox buttonLayout = new HBox(10); // 10 - это отступ между кнопками
+        HBox buttonLayout = new HBox(10);
         buttonLayout.getChildren().addAll(prevPageButton, nextPageButton, backButton);
 
-        VBox layout = new VBox(searchField, tableView, buttonLayout); // Добавляем поле поиска в layout
+        VBox layout = new VBox(searchField, tableView, buttonLayout);
 
         Scene resultScene = new Scene(layout, 800, 600);
 
@@ -146,7 +144,6 @@ public class ResultScene {
         }
     }
 
-    // Метод для отображения фоток расчета
     private void showResultDetails(Result result) {
         DataScene dataScene = new DataScene(stage, calcApplication);
         dataScene.showResults(result);

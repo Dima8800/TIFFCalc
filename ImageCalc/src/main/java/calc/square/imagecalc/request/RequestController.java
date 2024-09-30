@@ -128,9 +128,9 @@ public class RequestController {
             selectSQL = "SELECT * FROM Result LIMIT ? OFFSET ?;";
         } else {
             selectSQL = "SELECT * FROM Result WHERE LOWER(number) LIKE LOWER(?) " +
-                    "OR CAST(total_perimetr AS TEXT) LIKE ? " + // Поиск по total_perimetr
-                    "OR CAST(total_area AS TEXT) LIKE ? " + // Поиск по total_area
-                    "OR total_files = ? " + // Поиск по total_files
+                    "OR CAST(total_perimetr AS TEXT) LIKE ? " +
+                    "OR CAST(total_area AS TEXT) LIKE ? " +
+                    "OR total_files = ? " +
                     "LIMIT ? OFFSET ?;";
         }
 
@@ -139,25 +139,24 @@ public class RequestController {
 
             // Устанавливаем параметры для поиска и пагинации
             if (search != null && !search.trim().isEmpty()) {
-                String searchPattern = "%" + search.toLowerCase() + "%"; // Подготовка шаблона поиска
+                String searchPattern = "%" + search.toLowerCase() + "%";
 
-                preparedStatement.setString(1, searchPattern); // Поиск по number
-                preparedStatement.setString(2, searchPattern); // Поиск по total_perimetr
-                preparedStatement.setString(3, searchPattern); // Поиск по total_area
+                preparedStatement.setString(1, searchPattern);
+                preparedStatement.setString(2, searchPattern);
+                preparedStatement.setString(3, searchPattern);
 
-                // Попробуем установить значение для поиска по total_files
                 try {
                     int totalFilesSearch = Integer.parseInt(search.trim());
-                    preparedStatement.setInt(4, totalFilesSearch); // Поиск по total_files
+                    preparedStatement.setInt(4, totalFilesSearch);
                 } catch (NumberFormatException e) {
-                    preparedStatement.setInt(4, -1); // Устанавливаем недопустимое значение, чтобы не находить ничего
+                    preparedStatement.setInt(4, -1);
                 }
 
-                preparedStatement.setInt(5, pageSize); // Количество элементов на странице
-                preparedStatement.setInt(6, page * pageSize); // Смещение для текущей страницы
+                preparedStatement.setInt(5, pageSize);
+                preparedStatement.setInt(6, page * pageSize);
             } else {
-                preparedStatement.setInt(1, pageSize); // Количество элементов на странице
-                preparedStatement.setInt(2, page * pageSize); // Смещение для текущей страницы
+                preparedStatement.setInt(1, pageSize);
+                preparedStatement.setInt(2, page * pageSize);
             }
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -168,7 +167,7 @@ public class RequestController {
                     result.setNumber(resultSet.getString("number"));
                     result.setTotalPerimetr(resultSet.getDouble("total_perimetr"));
                     result.setTotalArea(resultSet.getDouble("total_area"));
-                    result.setTotalFiles(resultSet.getInt("total_files")); // Заполнение поля total_files
+                    result.setTotalFiles(resultSet.getInt("total_files"));
                     result.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
                     Timestamp updatedAtTimestamp = resultSet.getTimestamp("updated_at");
                     if (updatedAtTimestamp != null) {
@@ -228,8 +227,8 @@ public class RequestController {
             preparedStatement.setDouble(2, result.getTotalPerimetr());
             preparedStatement.setDouble(3, result.getTotalArea());
             preparedStatement.setInt(4, result.getTotalFiles());
-            preparedStatement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now())); // Обновляем время
-            preparedStatement.setLong(6, result.getId()); // ID записи, которую нужно обновить
+            preparedStatement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
+            preparedStatement.setLong(6, result.getId());
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
